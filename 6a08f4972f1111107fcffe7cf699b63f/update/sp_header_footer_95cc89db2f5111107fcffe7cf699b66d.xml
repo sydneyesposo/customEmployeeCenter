@@ -1,0 +1,872 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_header_footer">
+    <sp_header_footer action="INSERT_OR_UPDATE">
+        <category>hr</category>
+        <client_script><![CDATA[function escHeaderController($rootScope, $scope, $window, spUtil, $location, $uibModal, cabrillo, $timeout, i18n,spContextManager) {
+	var c = this;
+	
+	c.evaluateSearchWidgetVisibility = function() {
+		var currentUrl = $location.url();
+		var isChanged = false;
+		if (c.data.hideSearchOnHomepage) {
+			// hide on home page
+			if(currentUrl.endsWith(c.data.dashboardSuffix) || currentUrl.endsWith(c.data.portalSuffix)) {
+				$scope.showSearchBar = false;
+				isChanged = true;
+			}
+			else
+				$scope.showSearchBar = true;	
+		}
+    
+		if(currentUrl.indexOf("id=lf") !== -1 || isChanged)
+		    $scope.showSearchBar = false;
+		else
+		    $scope.showSearchBar = true;
+	}
+	
+	$scope.showSearchBar = true;
+	$scope.userID = $scope.user.sys_id;
+	$scope.todosPopupId = c.data.isMobile?'#popup_todos_mobile':'';
+	$scope.casesPopupId = c.data.isMobile?'#popup_cases_mobile':'';
+	$scope.popupType = c.data.isMobile?'collapse':'dropdown';
+	$scope.expanded = false;
+	$scope.cartItemCount = 0;
+	$scope.isVAActive = c.data.isVAActive;
+	
+	c.todoCountTranslation = i18n.format(c.data.todoCountLabel, String(c.data.todoCount));
+
+	var MOBILE_DEVICE_SCREEN_WIDTH = 767;
+	$scope.mobileDevice = c.data.isMobile || ($window.innerWidth < MOBILE_DEVICE_SCREEN_WIDTH);
+	$scope.showChat = false;
+	if (!$scope.showChat)
+		$('div.sp-ac-container').hide();
+	$scope.toggleChat = function() {
+		var alreadyIntegratedChat = $('div.conversation-button-container').length > 0;
+		spContextManager.getContextForKey('agent-chat', true).then(function(context) {
+			context = context || {};
+			context.show_ask_a_question_prechat = false;
+			spContextManager.updateContextForKey('agent-chat', context);
+		});
+		$('a#va_chat').toggleClass(' active-chat');
+		var isOpen = $('button.sp-ac-btn.open').length !=0;
+		var isVisible = $('button.sp-ac-btn.closed').is(":visible");
+		$scope.showChat = (isVisible)? isVisible : !$scope.showChat;
+		if(alreadyIntegratedChat){
+			$scope.$$postDigest(function(){
+				$('div.conversation-button-container button.help-button').trigger('click');
+			});
+		} else if($scope.showChat){
+			$('div.sp-ac-container').show();
+			if (!isOpen) {
+			$scope.$$postDigest(function(){
+				$('button.sp-ac-btn').trigger('click');
+			});
+			}
+		} else {
+			$('div.sp-ac-container').hide();
+			if (isOpen) {
+			$scope.$$postDigest(function(){
+				$('button.sp-ac-btn').trigger('click');
+			});
+			}
+		}
+	};
+
+	if (cabrillo.isNative())
+		$scope.isViewNative = true;
+	
+
+	$scope.$on("$sp.service_catalog.cart.count", function($evt, count) {
+		$scope.cartItemCount = count;
+	});
+
+	$scope.$on("$locationChangeSuccess", function(event, data){
+		if(c.data.isMobile){
+			if($('div#popup_todos_mobile').is(":visible"))
+				$('li > a#todos_popup').click();
+			else if($('div#popup_cases_mobile').is(":visible"))
+				$('li > a#cases_popup').click();
+		} else {
+			$('li.open > a#cases_popup').click();
+			$('li.open > a#todos_popup').click();	
+		}
+		c.evaluateSearchWidgetVisibility();
+	});
+
+	$scope.$on('sp_loading_indicator', function(e, value) {
+		$scope.loadingIndicator = value;
+	});
+
+	c.processWatchers = function(watcher){
+		setTimeout($scope.reloadHeader,20);
+	};
+
+	/* Record Watchers */ 
+	if (c.data.recordWatchers && c.data.recordWatchers.length > 0) {
+		angular.forEach(c.data.recordWatchers, function(watcher) {
+			spUtil.recordWatch($scope, watcher.table, watcher.filter, c.processWatchers);
+		});
+	}
+
+	$scope.reloadHeader = function(actionName) {
+		c.data.action = actionName || c.data.ACTION_TODO_COUNT;
+		if(c.data.action== c.data.ACTION_TODO_COUNT)
+			c.server.get({action:c.data.action}).then(function(resp){
+				c.data.todoCount = resp.data.todoCount;
+				c.todoCountTranslation = i18n.format(c.data.todoCountLabel, String(c.data.todoCount));
+			});
+		else
+			c.server.update();	
+	};
+
+	$scope.openLogin = function () {
+		$scope.modalInstance = $uibModal.open({
+			templateUrl: 'modalLogin',
+			scope: $scope
+		});
+	};
+
+	$rootScope.$on("update.searchpage", function(e, searchPage){
+		$scope.searchPage = searchPage;
+	});
+
+	$rootScope.$on('sp.avatar_changed', function() {
+		$scope.userID = ""; 
+		$timeout(function(){
+			$scope.userID = $scope.user.sys_id;
+		});
+	});
+
+	$scope.isHomepage = function() {
+		if (!$scope.page.id)
+			return true;
+
+		if ($scope.page.id == $scope.portal.homepage_dv)
+			return true;
+
+		return false;
+	};
+
+	$(document).ready(function() {
+		$scope.reloadHeader();
+	});
+	
+	c.evaluateSearchWidgetVisibility();
+
+	//remove nested ul to fix screen reader issue
+	$timeout(function () {
+		var cartToursWrapper = $('.navbar-header .v'+ scope.data.top.menu.sys_id);
+		
+		if (!cartToursWrapper.length)
+			return;
+		
+		var menu = cartToursWrapper.parent().parent();
+		var menuItems = cartToursWrapper.children();
+		menu.append(menuItems);
+		cartToursWrapper.parent().remove();
+	}, 1000);
+}]]></client_script>
+        <controller_as>c</controller_as>
+        <css>&#13;
+.navbar-inverse {&#13;
+  margin-bottom: 0px;&#13;
+  border-radius: 0px; &#13;
+  background-color: $navbar-inverse-bg;&#13;
+  .navbar-header {&#13;
+    &amp;.nav-container{&#13;
+      width: 100%;&#13;
+    }&#13;
+    .navbar-brand {&#13;
+      margin: 0;&#13;
+      height: 60px;&#13;
+      padding: $sp-logo-margin-y 0px 10px $sp-logo-margin-x;&#13;
+      img, span {&#13;
+        margin: 0;&#13;
+        display: block;&#13;
+        max-height: $sp-logo-max-height;&#13;
+        max-width: $sp-logo-max-width;&#13;
+        position: relative;&#13;
+        top: 50%;&#13;
+        -webkit-transform: translateY(-50%);&#13;
+        -ms-transform: translateY(-50%);&#13;
+        transform: translateY(-50%);&#13;
+      }&#13;
+    }&#13;
+    #hr_loading_indicator {&#13;
+      margin-top: 5px;&#13;
+    }&#13;
+    .navbar-right .dropdown-menu &gt; li &gt; a {&#13;
+      &amp;:hover, &amp;:focus {&#13;
+        background-color: darken($navbar-inverse-bg, 8%);&#13;
+        color: $navbar-inverse-link-hover-color;&#13;
+      }&#13;
+    }&#13;
+  }&#13;
+  .dropdown-toggle:focus {&#13;
+  	outline: thin dotted;&#13;
+    outline: 5px auto -webkit-focus-ring-color;&#13;
+  }&#13;
+  .sub-navbar {&#13;
+    background-color: $sp-navbar-divider-color;&#13;
+    border: none;&#13;
+    width: 100%;&#13;
+    a, .chat-btn {&#13;
+      padding: 10px 15px;&#13;
+    }&#13;
+    .chat-btn {&#13;
+      color: $navbar-inverse-link-color;&#13;
+      background-color: $sp-navbar-divider-color;&#13;
+    }&#13;
+    .chat-btn:focus {&#13;
+      box-shadow: inset 0 0 0 0.1rem #fff;
+      border-radius: .2rem;
+      background-color: transparent;&#13;
+      color: $navbar-inverse-link-hover-color;&#13;
+    }&#13;
+    .chat-btn:hover {&#13;
+      outline: 0 !important;&#13;
+      background-color: transparent;&#13;
+      color: $navbar-inverse-link-hover-color;&#13;
+    }&#13;
+    #cart-dropdown, #wishlist-menu {&#13;
+      display: none;&#13;
+      ~ * {&#13;
+        display: none !important;&#13;
+      }&#13;
+    }&#13;
+    .navbar-nav &gt; li &gt; a[href="?id=sc_cart"], .navbar-nav &gt; li &gt; a[href="?id=sc_wishlist"] {&#13;
+      display: none !important;&#13;
+    }&#13;
+    .gtd-dropdown-container {&#13;
+      display: none;&#13;
+    }&#13;
+    .open &gt; a, .open &gt; a:focus {&#13;
+      background-color: darken($sp-navbar-divider-color, 8%);&#13;
+    }&#13;
+    #cart-dropdown {&#13;
+      display: none;&#13;
+      :after {&#13;
+        content: "\f0d7";&#13;
+        vertical-align: baseline;&#13;
+        width: auto;&#13;
+        height: auto;&#13;
+        border: none;&#13;
+        margin-left: 5px !important;&#13;
+        display: inline-block;&#13;
+        font: normal normal normal 14px/1 FontAwesome;&#13;
+        font-size: inherit;&#13;
+        text-rendering: auto;&#13;
+        -webkit-font-smoothing: antialiased;&#13;
+        -moz-osx-font-smoothing: grayscale;&#13;
+      }&#13;
+    }&#13;
+    .dropdown-menu {&#13;
+      background-color: $sp-navbar-divider-color;&#13;
+      &gt; li &gt; a:hover, &gt; li &gt; a:focus {&#13;
+        background-color: darken($sp-navbar-divider-color, 8%);&#13;
+      }&#13;
+    }&#13;
+  }&#13;
+  .dropdown-menu {&#13;
+    border: none;&#13;
+    &amp;.case-menu {&#13;
+      right: 0;&#13;
+      left: auto;&#13;
+      padding: 0;&#13;
+      width: 450px;&#13;
+      background: $color-lightest;&#13;
+      overflow-y: hidden;&#13;
+    }&#13;
+  }&#13;
+  &gt; .open &gt; a:hover, &gt; .open &gt; a:focus  {&#13;
+    background-color: darken($navbar-invese-bg, 8%);&#13;
+  }&#13;
+  .fa-caret-down {&#13;
+    vertical-align: middle;&#13;
+    margin-top: 2px;&#13;
+  }&#13;
+  .caret:before {&#13;
+    content: "\f0d7";&#13;
+  }&#13;
+  .caret {&#13;
+    vertical-align: baseline;&#13;
+    width: auto;&#13;
+    height: auto;&#13;
+    border: none;&#13;
+    margin-left: 5px !important;&#13;
+    display: inline-block;&#13;
+    font: normal normal normal 14px/1 FontAwesome;&#13;
+    font-size: inherit;&#13;
+    text-rendering: auto;&#13;
+    -webkit-font-smoothing: antialiased;&#13;
+    -moz-osx-font-smoothing: grayscale;&#13;
+  }&#13;
+  .label-as-badge {&#13;
+    font-size: 1.2rem;&#13;
+    margin-left: 5px;&#13;
+    background-color: $primary;&#13;
+  }&#13;
+  .navbar {&#13;
+    transition: 250ms opacity ease-in-out; &#13;
+    -webkit-transition: 250ms opacity ease-in-out; &#13;
+    border: 0;&#13;
+  }&#13;
+  .navbar-fade {&#13;
+    opacity: 0.4;&#13;
+  }&#13;
+  .navbar-collapse {&#13;
+    padding-right: 0px;&#13;
+  }&#13;
+  .case-menu {&#13;
+    div#widget-tabs-2 {&#13;
+      border: none;&#13;
+      &gt; .panel-heading {&#13;
+        border: none;&#13;
+        bottom-border: 1px solid $border;&#13;
+      }&#13;
+    }&#13;
+  }&#13;
+  ul.nav.navbar-nav &gt; div.header-loader {&#13;
+    display: none;&#13;
+  }&#13;
+  &#13;
+  .cart-dropdown, .wishlist-menu, .gtd-dropdown-container .empty-dropdown {&#13;
+    width: 350px;&#13;
+    padding: 0;&#13;
+    z-index: 1000;&#13;
+    border-top-left-radius: 4px !important;&#13;
+    border-top-right-radius: 4px !important;&#13;
+&#13;
+    ul {&#13;
+      max-height: 300px;&#13;
+      overflow: auto;&#13;
+    }&#13;
+&#13;
+    .subtotal {&#13;
+      display: block;&#13;
+    }&#13;
+&#13;
+    .item-image {&#13;
+      padding: 0;&#13;
+      margin: 0;&#13;
+      text-align: center;&#13;
+      max-width:100%;&#13;
+      height:auto;&#13;
+    }&#13;
+    label, p {&#13;
+      padding: 0;&#13;
+      margin: 0;&#13;
+    }&#13;
+    .media {&#13;
+      padding: 0;&#13;
+      margin: 0;&#13;
+    }&#13;
+    .media-left &gt; a {&#13;
+      display: block;&#13;
+      width: 48px;&#13;
+      max-width: 48px;&#13;
+    }&#13;
+    .media-body {&#13;
+      label {&#13;
+        font-weight: bold;&#13;
+      }&#13;
+    }&#13;
+    li.media {&#13;
+      border-top: 1px solid #cccccc;&#13;
+      padding: 1rem;&#13;
+    }&#13;
+    .panel {&#13;
+      margin: 0;&#13;
+    }&#13;
+    .panel .panel-body {&#13;
+      padding: 0;&#13;
+    }&#13;
+    .btn-clear {&#13;
+      color: #333;&#13;
+      background-color: #fff;&#13;
+    }&#13;
+    p.quantity-price {&#13;
+      padding-top: 0.5rem;&#13;
+      span {&#13;
+        color: $text-muted;&#13;
+        padding-right: 0.5rem;&#13;
+      }&#13;
+    }&#13;
+    .align-right {&#13;
+      text-align: right;&#13;
+    }&#13;
+  }&#13;
+&#13;
+&#13;
+&#13;
+  .item-added-tooltip, wishlist-item-added-tooltip {&#13;
+    width: 184px;&#13;
+    font-size: 14px;&#13;
+  }&#13;
+&#13;
+  .gtd-dropdown-container {&#13;
+    .empty-tour-content{&#13;
+      text-align: center;&#13;
+      margin:40px 20px;&#13;
+    }&#13;
+    .dropdown-menu li {&#13;
+      a {&#13;
+        cursor: pointer;&#13;
+      }&#13;
+      min-width: 20em;&#13;
+    }&#13;
+    .label-as-badge{&#13;
+      width: 12px;&#13;
+      height: 12px;&#13;
+      display: inline-block;&#13;
+      padding: 0px;&#13;
+      padding-top: 2px;&#13;
+    }&#13;
+    .badge-container {&#13;
+      display: inline-block;&#13;
+      width: 12px;&#13;
+    }&#13;
+  }&#13;
+&#13;
+}&#13;
+@media screen and (min-width: 768px) {&#13;
+  .navbar-inverse {&#13;
+    .navbar-right &gt; .navbar-nav &gt; div {&#13;
+      float: left;&#13;
+    }&#13;
+    .navbar-right {&#13;
+      &gt; ul {&#13;
+        display: -webkit-box;&#13;
+        display: -moz-box;&#13;
+        display: box;&#13;
+&#13;
+        -moz-box-orient: horizontal;&#13;
+        box-orient: horizontal; &#13;
+        -webkit-box-orient: horizontal;&#13;
+      }&#13;
+      .navbar-nav &gt; li &gt; a {&#13;
+        padding-right: 10px;&#13;
+        padding-left: 10px;&#13;
+      }&#13;
+    }&#13;
+    .navbar-avatar {&#13;
+      margin-top: -7px;&#13;
+    }&#13;
+    a#todos_popup {&#13;
+      padding-left:0px;&#13;
+    }&#13;
+    .navbar-nav .open .dropdown-menu &gt; li &gt; a {&#13;
+      padding: 10px 20px;&#13;
+    }&#13;
+    .navbar-header {&#13;
+      position:relative;&#13;
+      .dropdown-toggle {&#13;
+        height: 60px;&#13;
+      }&#13;
+    }&#13;
+    .temp-mobile {&#13;
+      display: inline-block;&#13;
+    }&#13;
+    .sub-navbar {&#13;
+      display: flex;&#13;
+      padding-left: 0;&#13;
+    }&#13;
+    .header-search {&#13;
+      margin: 13px 0;&#13;
+      width: 26%;&#13;
+    }&#13;
+  }&#13;
+}&#13;
+@media (min-width : 320px) and (max-width : 767px) {&#13;
+  .navbar-inverse {&#13;
+    .dropdown-menu.case-menu {&#13;
+      width: 100%;&#13;
+    }&#13;
+    .navbar-toggle {&#13;
+      border-color: rgba(255, 255, 255, .25);&#13;
+      &amp;:hover, &amp;:focus {&#13;
+        background-color: transparent;&#13;
+      }&#13;
+    }&#13;
+    .navbar-nav {&#13;
+      display:block;&#13;
+      margin-top:0px;&#13;
+      margin-bottom:0px;&#13;
+      .open .dropdown-menu &gt; li &gt; a {&#13;
+        padding: 5px 30px;&#13;
+      }&#13;
+    }&#13;
+    .sub-navbar {&#13;
+      padding: 0px 0px;&#13;
+    }&#13;
+    .upper-collapse {&#13;
+      width: 100%;&#13;
+      padding-bottom: 0px;&#13;
+    }&#13;
+    .navbar-collapse {&#13;
+      padding-top: 0px;&#13;
+      padding-left: 0px;&#13;
+      overflow: hidden;&#13;
+      ul {&#13;
+        margin: 0;&#13;
+      }&#13;
+    }&#13;
+    .header-search {&#13;
+      margin-top: 0 !important;&#13;
+      padding-bottom: 10px;&#13;
+      float: left;&#13;
+      width: 100%;&#13;
+    }&#13;
+    .navbar-header {&#13;
+      &gt; ul {&#13;
+        display: inline-block;&#13;
+        padding: 10px 10px 0 0;&#13;
+        float: right;&#13;
+        margin: 0;&#13;
+      }&#13;
+      &gt; li {&#13;
+        display: inline-block; &#13;
+      }&#13;
+    }&#13;
+    .height-adjust {&#13;
+      padding: 10px 0px;&#13;
+      margin-bottom: 10px;&#13;
+    }&#13;
+    .popup-edit {&#13;
+      background: $color-lightest;&#13;
+      position: fixed;&#13;
+      top:0; &#13;
+      height:100%;&#13;
+      margin-top: 0;&#13;
+      max-height:100%;&#13;
+      width:100%&#13;
+    }&#13;
+    .navbar-collapse-label {&#13;
+      float: right;&#13;
+      margin-right: -5px;&#13;
+      margin-top: -7px;&#13;
+    }&#13;
+    button &gt; span.label {&#13;
+      padding: .2em .5em .2em;&#13;
+    }&#13;
+  }&#13;
+}&#13;
+&#13;
+@media screen and (min-width: 768px) {&#13;
+  	.avatar-drop-down,.avatar-drop-down &gt; div{&#13;
+  		display: inline;&#13;
+	}&#13;
+}&#13;
+</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>false</has_preview>
+        <id/>
+        <internal>false</internal>
+        <link><![CDATA[function escHeaderLink(scope, element) {
+	$(element).on('click', 'a.navbar-brand', function(e) {
+		scope.expanded = false;
+	});
+	$(element).on('click.nav','.navbar-collapse.in',function(e) {
+		var target = $(e.target);
+		if (target.is('a') && !target.hasClass("dropdown-toggle") && target.siblings('.dropdown-menu').length == 0) {
+			// collapse mobile nav if clicked an anchor that isn't a dropdown toggle
+			scope.expanded = false;
+			return;
+		}
+		
+		// if neither target nor parent is an anchor or the parent anchor is a dropdown-toggle, do nothing
+		if (!target.parent().is('a') || target.parent().hasClass("dropdown-toggle") || target.parent().siblings('.dropdown-menu').length > 0)
+			return;
+		
+		// collapse mobile nav if target is part of a submenu
+		if (target.parents("ul.dropdown-menu").length > 0) {
+			scope.expanded = false;
+			return;
+		}
+		
+		// collapse mobile nav is target is part of the dropdown
+		if (target.parents("div.navbar-collapse").length > 0)
+			scope.expanded = false;
+	});
+	$(element).on('keydown','.dropdown-menu > .header-menu-item',function(e){
+		var target = e.target;
+		if (target.localName == 'a') {
+			if(e.keyCode == 37) {
+				e.preventDefault();
+				$(target).parents('li').removeClass('open');
+				$(target).parents('li').find('a').focus();
+			} else if(e.keyCode == 39) {
+				e.preventDefault();
+				$(target).parents('li').removeClass('open');
+				$(target).parents('li').find('a').focus();
+			}
+			if(e.keyCode == 9) {
+				$(target).parents('li').removeClass('open');
+			}
+		}
+	});
+	
+	$(element).on('keydown','.header-menu-item',function(e){
+		var target = e.target;
+		if (target.localName == 'a') {
+			var currentMenuItem = $(target).parents('li');
+			var parentUL = currentMenuItem.parents('ul');
+			var allMenuItems = parentUL.children('li:visible');
+			var firstMenuItem = allMenuItems.first();
+			var lastMenuItem = allMenuItems.last();
+			var menuItemToFocus;
+			
+			if(e.keyCode == 37) {
+				e.preventDefault();
+				currentMenuItem.removeClass('open');
+				var previousMenuItem = currentMenuItem.prevAll('li:visible').first();
+				//enable circular navigation
+				menuItemToFocus = previousMenuItem.length ? previousMenuItem : lastMenuItem;
+				menuItemToFocus.find('a').focus();
+			} else if(e.keyCode == 39) {
+				e.preventDefault();
+				currentMenuItem.removeClass('open');
+				var nextMenuItem = currentMenuItem.nextAll('li:visible').first();
+				//enable circular navigation
+				menuItemToFocus = nextMenuItem.length ? nextMenuItem : firstMenuItem;
+				menuItemToFocus.find('a').focus();
+			}
+			
+			if(e.keyCode == 9) {
+				$(target).parents('li').removeClass('open');
+			}
+		}
+	});
+	
+}]]></link>
+        <name>Hello SP Header</name>
+        <option_schema/>
+        <public>false</public>
+        <roles/>
+        <script><![CDATA[(function () {
+	data.ACTION_TODO_COUNT = 'update_todo_count';
+	data.ACTION_LOAD_CASES = 'load_cases';
+	data.isMobile = gs.isMobile();
+
+	data.isVAActive = new GlidePluginManager().isActive("com.glide.cs.chatbot");
+
+	data.chatSupportEnabled = new sn_hr_sp.hr_PortalUtil().isChatSupportEnabled();
+
+	//Load To-dos count
+	if (!input || input.action == data.ACTION_TODO_COUNT) {
+		var myTodosCountObject= new sn_hr_sp.todoPageUtils().getMyTodosCount();
+		data.todoCount = myTodosCountObject.todoCount;
+		data.todoCountLabel = gs.getMessage("{0} to-dos remaining");
+		data.recordWatchers = myTodosCountObject.recordWatchers;
+
+		// avoid consecutive calls 
+		if(input)
+			return ;
+	}
+
+	data.isHrCoreActive = GlidePluginManager().isActive("com.sn_hr_core");
+
+	if (data.isHrCoreActive && gs.getProperty('sn_hr_core.esc.create_hrprofile.override', 'true') === "true") {
+
+		// HR Profile
+		var hrProfileGr = new GlideRecord('sn_hr_core_profile');
+		hrProfileGr.addQuery('user', gs.getUserID());
+		hrProfileGr.setLimit(1);
+		hrProfileGr.query();
+		if (!hrProfileGr.hasNext() && gs.getUserID() && new GlideRecord('sys_user').get(gs.getUserID())) {
+			hrProfileGr.setValue('user', gs.getUserID());
+			hrProfileGr.insert();
+		}
+	}
+
+	// populate the 'data' object
+	data.link = '?id=hri_user_profile&sys_id='+ gs.getUserID();
+
+	// Defines the support queue ID that will be linked to by the Live Chat link in header
+	data.login_page = $sp.getValue('login_page');
+
+	var menu = $sp.getValue("sp_rectangle_menu");
+	//Initialize menu objects
+	data.sub = {};
+	data.top = {};
+	data.sub.menu = $sp.getWidgetFromInstance(menu);
+
+	//Copy sub menu to top menu, we want cart up top and menu items in the sub nav
+
+	data.top.menu = JSON.parse(JSON.stringify(data.sub.menu));
+	if (data.sub.menu && data.sub.menu.data) {
+		data.sub.menu.data.replace = true;
+		// Hide login if menu already has link to login
+		data.hasLogin = false;
+		if (data.sub.menu.data.menu.items) {
+			for(var i in data.sub.menu.data.menu.items) {
+				var item = data.sub.menu.data.menu.items[i];
+				if (item.type == 'page' && item.sp_page == data.login_page)
+					data.hasLogin = true;
+			}
+		}
+	}
+
+	var configOptions = JSON.parse(data.top.menu.options.widget_parameters);
+	data.hideSearchOnHomepage = configOptions.exclude_search_on_homepage.value;
+	data.showRequests = configOptions.enable_requests.value;
+	data.showTodos = configOptions.enable_tasks.value;
+
+	if (data.hideSearchOnHomepage) {
+		data.homepage = $sp.getValue('homepage');
+		var gr = new GlideRecord('sp_page');
+		gr.get(data.homepage);
+		data.dashboardSuffix = gr.getValue("id");
+		data.portalSuffix = $sp.getPortalRecord().getDisplayValue("url_suffix");
+	}
+
+	// Analytics
+	data.analyticsSupportEnabled = new GlidePluginManager().isActive('com.sn_content_analytics') && new GlidePluginManager().isActive('com.sn_content_delivery') && !sn_cd.cd_ContentDelivery.isContentPreview($sp);
+
+	//Clean up items that don't belong
+
+	data.sub.menu.data.cartWidget = {};
+	data.sub.menu.options.enable_cart = false;
+	data.sub.menu.data.showTours = false;
+	data.top.menu.data.menu.items = [];
+
+
+	data.loginWidget = $sp.getWidgetFromInstance('login-modal');
+	var typeAheadOptions = {};
+	typeAheadOptions.refresh_page_on_search_submission = false;
+	typeAheadOptions.title = gs.getMessage("Search the portal");
+	if($sp.isAISearchEnabled())
+		typeAheadOptions.disable_all_suggestions = ($sp.getParameter('disableAllSuggestions') == 'true');
+	data.typeahead = $sp.getWidget('typeahead-search', typeAheadOptions);
+	data.avatarDropDown = $sp.getWidget('profile-with-drop-down',{"profile_url": data.link, "show_xs_avatar": false});
+
+})();]]></script>
+        <servicenow>false</servicenow>
+        <static>false</static>
+        <sys_class_name>sp_header_footer</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2022-08-19 03:08:22</sys_created_on>
+        <sys_id>95cc89db2f5111107fcffe7cf699b66d</sys_id>
+        <sys_mod_count>1</sys_mod_count>
+        <sys_name>Hello SP Header</sys_name>
+        <sys_package display_value="Hello SP" source="x_738708_hello_sp">6a08f4972f1111107fcffe7cf699b63f</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="Hello SP">6a08f4972f1111107fcffe7cf699b63f</sys_scope>
+        <sys_update_name>sp_header_footer_95cc89db2f5111107fcffe7cf699b66d</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2022-08-19 03:08:49</sys_updated_on>
+        <template><![CDATA[<!-- Nav bar menu items starts-->
+<nav class="navbar-inverse" aria-label="Primary" role="navigation">
+
+  <!-- Piece above searchbar -->
+
+  <div class="clearfix">
+    <div class="navbar-header nav-container">
+
+      <!-- Logo -->
+      <a class="navbar-brand" ng-if="::!portal.logo" href="?id={{::portal.homepage_dv}}" aria-label="{{::portal.title}}"><span>{{::portal.title}}</span></a>
+      <a class="navbar-brand navbar-brand-logo" ng-if="::portal.logo" href="?id={{::portal.homepage_dv}}" aria-label="{{::portal.title}}${ - Home Page}" data-toggle="tooltip" data-placement="bottom" data-title="{{::portal.title}}${ - Home}">
+        <img ng-src="{{::portal.logo}}" alt="{{::portal.title}}${ - Home}"/>
+      </a>
+
+      <!-- Toggle Button -->
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse" ng-class="(expanded) ? 'in' : 'collapsed'" ng-click="expanded = !expanded" aria-expanded="{{expanded ? true: false}}" ng-style="{'background-color' : (expanded) ? '#333' : 'transparent'}" aria-label="{{expanded ? '${Hide menu primary navigation}' : '${Show menu primary navigation}'}}" data-toggle="tooltip" data-placement="auto bottom" data-original-title="{{expanded ? '${Hide Menu}' : '${Show Menu}'}}">
+        <span ng-show="(data.todoCount + data.requestCount + cartItemCount) > 0" class="label label-as-badge label-primary navbar-collapse-label">{{data.todoCount + data.requestCount + cartItemCount}}</span>
+        <span class="sr-only">${Toggle navigation}</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+
+      <!-- Search Bar Desktop -->
+      <div class="header-search navbar-header col-sm-3" ng-if="showSearchBar">
+        <sp-widget widget="data.typeahead"></sp-widget>
+      </div>
+
+      <!-- Header Navbar -->
+      <div class="navbar-collapse upper-collapse navbar-right collapse collapsed" ng-class="(expanded) ? 'in' : 'collapsed'" aria-expanded="false">
+        <div class="height-adjust">
+          <ul class="nav navbar-nav" role="menubar" aria-orientation="horizontal">
+            <li class="hidden-xs" ng-show="loadingIndicator">  
+              <a> 
+                <div class="header-loader" id="hr_loading_indicator"> 
+                  <div class="hidden-xs sp-loading-indicator la-sm"> 
+                    <div></div> 
+                    <div></div> 
+                    <div></div> 
+                  </div> 
+                </div> 
+              </a> 
+            </li> 
+            <li class="visible-xs-block m-t-sm m-b-sm">
+              <a href="{{data.link}}" ng-class="getClass(data.link)" aria-label="{{user.name}} ${profile}" role="menuitem">
+                <span class="navbar-avatar"><sn-avatar class="avatar-small-medium" show-presence="false" primary="user.sys_id" /></span>
+                <span class="visible-xs-inline">{{user.name}}</span>
+              </a>
+            </li>        
+            <li class="hidden-xs header-menu-item" role="presentation" ng-if="data.showTodos">
+              <a href="?id=hrm_todos_page" ng-class="getClass('?id=hrm_todos_page')" id="todos_link"  aria-label="${To-dos}, {{c.todoCountTranslation}}" role="menuitem">
+                <span ng-bind-html="'${To-dos}'"></span>
+                <span ng-show="data.todoCount" class="label label-as-badge label-primary">{{data.todoCount}}</span>
+              </a>
+            </li>
+            <li class="hidden-xs header-menu-item" role="presentation" ng-if="data.showRequests">
+              <a href="?id=my_requests" id="cases_popup" aria-label="${Requests}" role="menuitem"> <!-- TODO: Link for requests -->
+                <span ng-bind-html="'${Requests}'" aria-hidden="true"></span>
+                <span ng-show="data.requestCount" class="label label-as-badge label-primary">{{data.requestCount}}</span>
+              </a>
+            </li>
+            <li>
+            	<sp-widget widget="data.top.menu" id="menu_item"></sp-widget>
+            </li>
+            
+            <li class="visible-xs" ng-if="data.isHrCoreActive" ng-if="data.showTodos">
+              <a href="?id=hrm_todos_page" id="todos_mobile" aria-label="${To-dos}, {{data.todoCountTranslation}}" role="menuitem">
+                <span ng-bind-html="'${To-dos}'" aria-hidden="true"></span>
+                <span ng-show="data.todoCount" class="label label-as-badge label-primary">{{data.todoCount}}</span>
+              </a>
+            </li>
+            <li class="visible-xs" ng-if="data.showRequests">
+              <a href="?id=my_requests" id="requests_mobile" aria-label="${Requests}" role="menuitem">
+                <span ng-bind-html="'${Requests}'" aria-hidden="true"></span>
+                <span ng-show="data.requestCount" class="label label-as-badge label-primary">{{data.requestCount}}</span>
+              </a>
+            </li>
+          </ul>
+          <!-- Avatar and its drop down -->
+          <div class="avatar-drop-down header-menu-item">
+            <sp-widget widget="data.avatarDropDown" id="avatar_drop_down" ></sp-widget>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Sub Navbar -->
+
+  <div class="navbar-collapse sub-navbar clearfix collapse collapsed" ng-class="(expanded) ? 'in' : 'collapsed'" aria-expanded="false">
+    <div class="height-adjust">
+      <sp-widget widget="data.sub.menu"></sp-widget>
+      <ul ng-if="::(!user.logged_in && page.id != portal.login_page_dv && !data.hasLogin)" class="nav navbar-nav">
+        <li><a href ng-click="openLogin()">${Login}</a>
+        </li>
+      </ul>
+      <div class="hidden-xs" ng-if="data.chatSupportEnabled == true || isVAActive">
+          <button class="btn chat-btn" ng-click="toggleChat()" id="va_chat" aria-label="{{showChat ? '${Hide Chat Window}' : '${Show Chat Window}'}}" aria-pressed="{{showChat ? true : false}}" ng-class="mobileDevice?'active-chat':'inactive-chat'">
+            <span ng-bind-html="'${Chat}'" aria-hidden="true"></span>
+            <span ng-if="mobileDevice && showChat" class="chat-active" ng-bind-html="'${Active}'" aria-hidden="true"></span>
+          </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Analytics -->
+  <div ng-if="data.analyticsSupportEnabled">
+    <widget id="cda-site-analytics" options="{'enable_logging': false}"></widget>
+  </div>
+</nav>]]></template>
+    </sp_header_footer>
+</record_update>

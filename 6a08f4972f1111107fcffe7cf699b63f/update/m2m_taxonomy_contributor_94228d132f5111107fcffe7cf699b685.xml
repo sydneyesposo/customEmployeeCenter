@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="m2m_taxonomy_contributor">
+    <m2m_taxonomy_contributor action="INSERT_OR_UPDATE">
+        <contributors display_value="All content taxonomy contributors">58473babc3453010069aec4b7d40dd50</contributors>
+        <sys_class_name>m2m_taxonomy_contributor</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2022-08-19 02:21:52</sys_created_on>
+        <sys_id>94228d132f5111107fcffe7cf699b685</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name/>
+        <sys_package display_value="Hello SP" source="x_738708_hello_sp">6a08f4972f1111107fcffe7cf699b63f</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="Hello SP">6a08f4972f1111107fcffe7cf699b63f</sys_scope>
+        <sys_update_name>m2m_taxonomy_contributor_94228d132f5111107fcffe7cf699b685</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2022-08-19 02:21:52</sys_updated_on>
+        <taxonomy display_value="Hello SP">94228d9f2f1111107fcffe7cf699b64c</taxonomy>
+    </m2m_taxonomy_contributor>
+</record_update>

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_page">
+    <sp_page action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <css>$banner-768-svg : "d9bc1319533130101865ddeeff7b12ba.iix";&#13;
+&#13;
+main.body {&#13;
+  padding-top: 0rem !important;&#13;
+}&#13;
+&#13;
+/* Padding for container after banner image */&#13;
+.padding-top {&#13;
+  padding-top: 2.4rem;&#13;
+}&#13;
+&#13;
+/* Padding bottom after each widget */&#13;
+.child-b-margin &gt; span &gt; div &gt; *{&#13;
+  margin-bottom: 2.4rem;&#13;
+}&#13;
+&#13;
+.mobile-banner {&#13;
+  background-position: right bottom !important;&#13;
+}&#13;
+&#13;
+@media (max-width: 48em) {&#13;
+  .ng-scope.mobile-banner {&#13;
+    background-image:url($banner-768-svg) !important;&#13;
+    background-repeat: no-repeat;&#13;
+    background-size: cover;&#13;
+  }&#13;
+  .child-b-margin &gt; span &gt; div &gt; *{&#13;
+    margin-bottom: 1.6rem;&#13;
+  }&#13;
+  .padding-right {&#13;
+    padding-right: 0rem;&#13;
+  }&#13;
+   .padding-top {&#13;
+    padding-top: 1.6rem;&#13;
+  }&#13;
+}&#13;
+&#13;
+@media (max-width : 62em) {&#13;
+  .container {&#13;
+    width : 100%;&#13;
+  }&#13;
+  .col-md-4 {&#13;
+    width : 100%&#13;
+  }&#13;
+  .col-md-8 {&#13;
+    width : 100%&#13;
+  }&#13;
+  .left-column{&#13;
+    padding-left: 2.4rem;&#13;
+    padding-right: 2.4rem;	&#13;
+  }	&#13;
+  .right-column{&#13;
+    padding-left: 2.4rem;&#13;
+    padding-right: 2.4rem;	&#13;
+  }&#13;
+}&#13;
+&#13;
+@media (min-width: 62em) {	&#13;
+  .container {	&#13;
+    padding-left: 1.2rem;	&#13;
+    padding-right: 1.2rem;	&#13;
+  }	&#13;
+  .left-column{&#13;
+    padding-right: 0rem;	&#13;
+  }	&#13;
+  .right-column{&#13;
+    padding-left: 2.4rem;&#13;
+    padding-right: 0;	&#13;
+  }	&#13;
+}</css>
+        <draft>false</draft>
+        <dynamic_title_structure/>
+        <id>hellosp_dashboard</id>
+        <internal>false</internal>
+        <omit_watcher>false</omit_watcher>
+        <public>false</public>
+        <roles/>
+        <seo_script/>
+        <short_description>An employee's one stop shop to get help.</short_description>
+        <sys_class_name>sp_page</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2022-08-19 02:03:35</sys_created_on>
+        <sys_id>d4fdb41f2f1111107fcffe7cf699b67c</sys_id>
+        <sys_mod_count>1</sys_mod_count>
+        <sys_name>hellosp_dashboard</sys_name>
+        <sys_package display_value="Hello SP" source="x_738708_hello_sp">6a08f4972f1111107fcffe7cf699b63f</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="Hello SP">6a08f4972f1111107fcffe7cf699b63f</sys_scope>
+        <sys_update_name>sp_page_d4fdb41f2f1111107fcffe7cf699b67c</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2022-08-19 02:04:11</sys_updated_on>
+        <title>Hello SP Homepage</title>
+        <use_seo_script>false</use_seo_script>
+    </sp_page>
+    <sys_translated_text action="delete_multiple" query="documentkey=d4fdb41f2f1111107fcffe7cf699b67c"/>
+</record_update>

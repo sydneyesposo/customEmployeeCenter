@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_instance_ais">
+    <sp_instance_ais action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <ai_search_source_filter/>
+        <class_name/>
+        <color>default</color>
+        <css>$background-primary: #FFFFFF !default;
+$sp-panel-box-shadow: 0 4px 8px 0 rgba(23, 40, 52, 0.08) !default;
+$border-primary: #8790A1 !default;
+$border-secondary: #B3B7BC !default;
+$border-tertiary: #DADDE2 !default;
+$text-primary: #1D2223 !default;
+$sp-space--xl: 24px !default;
+$sp-space--xxl: 32px !default;
+$sp-space--sm: 8px !default;
+$sp-space--md: 12px !default;
+$text-primary: #272822 !default;
+$link-color: #3C59E7 !default;
+
+h2 {
+  font-size: 32px;
+  font-family: inherit;
+  color: #fff;
+  color: $text-white;
+  text-align: left;
+  margin-bottom: $sp-space--xl !important;
+}
+
+.hidden-xs {
+  display: block !important;
+}
+
+form {
+  height: 46px;
+  border-radius: $sp-space--sm;
+}
+
+#homepage-search {
+  margin: 72px 0px 74px 0px !important;
+  padding-top: 0px !important;
+  padding-bottom: 0px !important;
+  div {
+    padding: 0px !important;
+    font-size: 30px;
+  }
+}
+
+@media (max-width: 768px) {
+  #homepage-search{
+    margin-top: 35px !important;
+    margin-bottom: 116px !important;
+    padding-left: $sp-space--xxl !important;
+    padding-right: $sp-space--xxl !important;
+  }
+  h2 {
+    margin-bottom: 17px !important;
+  }
+}
+
+button {
+  height: 44px;
+  color: #717171;
+  box-shadow: none;
+  border-bottom-right-radius: $sp-space--sm;
+  border-top-right-radius: $sp-space--sm;
+}
+
+input {
+  box-shadow: none;
+  font-size: 16px;
+  font-family: inherit;
+  color: $text-tertiary;
+  padding: $sp-space--md;
+  height: 44px;
+  border-bottom-left-radius: $sp-space--sm;
+  border-top-left-radius: $sp-space--sm;
+}
+
+button:focus, input:focus {
+border: 2px solid $link-color;
+}</css>
+        <disable_all_suggestions>false</disable_all_suggestions>
+        <glyph/>
+        <id/>
+        <order>1</order>
+        <placeholder/>
+        <roles/>
+        <search_application/>
+        <search_results_configuration/>
+        <short_description/>
+        <size>md</size>
+        <sp_column display_value="1">b0fd3c1f2f1111107fcffe7cf699b61c</sp_column>
+        <sp_widget display_value="Homepage Search">200fbd96cb20020000f8d856634c9ca1</sp_widget>
+        <spell_check_font_size>xl</spell_check_font_size>
+        <sys_class_name>sp_instance_ais</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2022-08-19 02:03:37</sys_created_on>
+        <sys_id>78fd3c1f2f1111107fcffe7cf699b61e</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>How can we help?</sys_name>
+        <sys_package display_value="Hello SP" source="x_738708_hello_sp">6a08f4972f1111107fcffe7cf699b63f</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="Hello SP">6a08f4972f1111107fcffe7cf699b63f</sys_scope>
+        <sys_update_name>sp_instance_ais_78fd3c1f2f1111107fcffe7cf699b61e</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2022-08-19 02:03:37</sys_updated_on>
+        <title>How can we help?</title>
+        <url/>
+        <widget_parameters><![CDATA[{
+	"typeahead_search": {
+		"value": "{title: 'Search'}",
+		"displayValue": "{title: 'Search'}"
+	}
+}]]></widget_parameters>
+    </sp_instance_ais>
+    <sys_translated_text action="delete_multiple" query="documentkey=78fd3c1f2f1111107fcffe7cf699b61e"/>
+</record_update>

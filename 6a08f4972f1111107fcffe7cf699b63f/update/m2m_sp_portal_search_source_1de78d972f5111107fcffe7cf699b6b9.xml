@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="m2m_sp_portal_search_source">
+    <m2m_sp_portal_search_source action="INSERT_OR_UPDATE">
+        <order>100</order>
+        <sp_portal display_value="Hello SP">64c874d72f1111107fcffe7cf699b68e</sp_portal>
+        <sp_search_source display_value="Banner Content">1b56c8c0b3302300e64be12b86a8dc68</sp_search_source>
+        <sys_class_name>m2m_sp_portal_search_source</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2022-08-19 02:47:04</sys_created_on>
+        <sys_id>1de78d972f5111107fcffe7cf699b6b9</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>Hello SP.Banner Content</sys_name>
+        <sys_package display_value="Hello SP" source="x_738708_hello_sp">6a08f4972f1111107fcffe7cf699b63f</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="Hello SP">6a08f4972f1111107fcffe7cf699b63f</sys_scope>
+        <sys_update_name>m2m_sp_portal_search_source_1de78d972f5111107fcffe7cf699b6b9</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2022-08-19 02:47:04</sys_updated_on>
+    </m2m_sp_portal_search_source>
+</record_update>

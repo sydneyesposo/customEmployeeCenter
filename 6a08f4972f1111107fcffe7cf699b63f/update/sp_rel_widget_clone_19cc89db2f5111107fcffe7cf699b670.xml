@@ -1,0 +1,856 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_rel_widget_clone">
+    <sp_rel_widget_clone action="INSERT_OR_UPDATE">
+        <child display_value="Hello SP Header">95cc89db2f5111107fcffe7cf699b66d</child>
+        <cloned>2022-08-19 03:08:22</cloned>
+        <last_validated>2022-08-19 03:08:22</last_validated>
+        <parent display_value="ESC Header">bda7abc623882300fb0c949e27bf6544</parent>
+        <payload>&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;sp_widget&gt;&lt;category&gt;hr&lt;/category&gt;&lt;client_script&gt;&lt;![CDATA[function escHeaderController($rootScope, $scope, $window, spUtil, $location, $uibModal, cabrillo, $timeout, i18n,spContextManager) {
+	var c = this;
+	
+	c.evaluateSearchWidgetVisibility = function() {
+		var currentUrl = $location.url();
+		var isChanged = false;
+		if (c.data.hideSearchOnHomepage) {
+			// hide on home page
+			if(currentUrl.endsWith(c.data.dashboardSuffix) || currentUrl.endsWith(c.data.portalSuffix)) {
+				$scope.showSearchBar = false;
+				isChanged = true;
+			}
+			else
+				$scope.showSearchBar = true;	
+		}
+    
+		if(currentUrl.indexOf("id=lf") !== -1 || isChanged)
+		    $scope.showSearchBar = false;
+		else
+		    $scope.showSearchBar = true;
+	}
+	
+	$scope.showSearchBar = true;
+	$scope.userID = $scope.user.sys_id;
+	$scope.todosPopupId = c.data.isMobile?'#popup_todos_mobile':'';
+	$scope.casesPopupId = c.data.isMobile?'#popup_cases_mobile':'';
+	$scope.popupType = c.data.isMobile?'collapse':'dropdown';
+	$scope.expanded = false;
+	$scope.cartItemCount = 0;
+	$scope.isVAActive = c.data.isVAActive;
+	
+	c.todoCountTranslation = i18n.format(c.data.todoCountLabel, String(c.data.todoCount));
+
+	var MOBILE_DEVICE_SCREEN_WIDTH = 767;
+	$scope.mobileDevice = c.data.isMobile || ($window.innerWidth &lt; MOBILE_DEVICE_SCREEN_WIDTH);
+	$scope.showChat = false;
+	if (!$scope.showChat)
+		$('div.sp-ac-container').hide();
+	$scope.toggleChat = function() {
+		var alreadyIntegratedChat = $('div.conversation-button-container').length &gt; 0;
+		spContextManager.getContextForKey('agent-chat', true).then(function(context) {
+			context = context || {};
+			context.show_ask_a_question_prechat = false;
+			spContextManager.updateContextForKey('agent-chat', context);
+		});
+		$('a#va_chat').toggleClass(' active-chat');
+		var isOpen = $('button.sp-ac-btn.open').length !=0;
+		var isVisible = $('button.sp-ac-btn.closed').is(":visible");
+		$scope.showChat = (isVisible)? isVisible : !$scope.showChat;
+		if(alreadyIntegratedChat){
+			$scope.$$postDigest(function(){
+				$('div.conversation-button-container button.help-button').trigger('click');
+			});
+		} else if($scope.showChat){
+			$('div.sp-ac-container').show();
+			if (!isOpen) {
+			$scope.$$postDigest(function(){
+				$('button.sp-ac-btn').trigger('click');
+			});
+			}
+		} else {
+			$('div.sp-ac-container').hide();
+			if (isOpen) {
+			$scope.$$postDigest(function(){
+				$('button.sp-ac-btn').trigger('click');
+			});
+			}
+		}
+	};
+
+	if (cabrillo.isNative())
+		$scope.isViewNative = true;
+	
+
+	$scope.$on("$sp.service_catalog.cart.count", function($evt, count) {
+		$scope.cartItemCount = count;
+	});
+
+	$scope.$on("$locationChangeSuccess", function(event, data){
+		if(c.data.isMobile){
+			if($('div#popup_todos_mobile').is(":visible"))
+				$('li &gt; a#todos_popup').click();
+			else if($('div#popup_cases_mobile').is(":visible"))
+				$('li &gt; a#cases_popup').click();
+		} else {
+			$('li.open &gt; a#cases_popup').click();
+			$('li.open &gt; a#todos_popup').click();	
+		}
+		c.evaluateSearchWidgetVisibility();
+	});
+
+	$scope.$on('sp_loading_indicator', function(e, value) {
+		$scope.loadingIndicator = value;
+	});
+
+	c.processWatchers = function(watcher){
+		setTimeout($scope.reloadHeader,20);
+	};
+
+	/* Record Watchers */ 
+	if (c.data.recordWatchers &amp;&amp; c.data.recordWatchers.length &gt; 0) {
+		angular.forEach(c.data.recordWatchers, function(watcher) {
+			spUtil.recordWatch($scope, watcher.table, watcher.filter, c.processWatchers);
+		});
+	}
+
+	$scope.reloadHeader = function(actionName) {
+		c.data.action = actionName || c.data.ACTION_TODO_COUNT;
+		if(c.data.action== c.data.ACTION_TODO_COUNT)
+			c.server.get({action:c.data.action}).then(function(resp){
+				c.data.todoCount = resp.data.todoCount;
+				c.todoCountTranslation = i18n.format(c.data.todoCountLabel, String(c.data.todoCount));
+			});
+		else
+			c.server.update();	
+	};
+
+	$scope.openLogin = function () {
+		$scope.modalInstance = $uibModal.open({
+			templateUrl: 'modalLogin',
+			scope: $scope
+		});
+	};
+
+	$rootScope.$on("update.searchpage", function(e, searchPage){
+		$scope.searchPage = searchPage;
+	});
+
+	$rootScope.$on('sp.avatar_changed', function() {
+		$scope.userID = ""; 
+		$timeout(function(){
+			$scope.userID = $scope.user.sys_id;
+		});
+	});
+
+	$scope.isHomepage = function() {
+		if (!$scope.page.id)
+			return true;
+
+		if ($scope.page.id == $scope.portal.homepage_dv)
+			return true;
+
+		return false;
+	};
+
+	$(document).ready(function() {
+		$scope.reloadHeader();
+	});
+	
+	c.evaluateSearchWidgetVisibility();
+
+	//remove nested ul to fix screen reader issue
+	$timeout(function () {
+		var cartToursWrapper = $('.navbar-header .v'+ scope.data.top.menu.sys_id);
+		
+		if (!cartToursWrapper.length)
+			return;
+		
+		var menu = cartToursWrapper.parent().parent();
+		var menuItems = cartToursWrapper.children();
+		menu.append(menuItems);
+		cartToursWrapper.parent().remove();
+	}, 1000);
+}]]&gt;&lt;/client_script&gt;&lt;controller_as&gt;c&lt;/controller_as&gt;&lt;css&gt;&amp;#13;
+.navbar-inverse {&amp;#13;
+  margin-bottom: 0px;&amp;#13;
+  border-radius: 0px; &amp;#13;
+  background-color: $navbar-inverse-bg;&amp;#13;
+  .navbar-header {&amp;#13;
+    &amp;amp;.nav-container{&amp;#13;
+      width: 100%;&amp;#13;
+    }&amp;#13;
+    .navbar-brand {&amp;#13;
+      margin: 0;&amp;#13;
+      height: 60px;&amp;#13;
+      padding: $sp-logo-margin-y 0px 10px $sp-logo-margin-x;&amp;#13;
+      img, span {&amp;#13;
+        margin: 0;&amp;#13;
+        display: block;&amp;#13;
+        max-height: $sp-logo-max-height;&amp;#13;
+        max-width: $sp-logo-max-width;&amp;#13;
+        position: relative;&amp;#13;
+        top: 50%;&amp;#13;
+        -webkit-transform: translateY(-50%);&amp;#13;
+        -ms-transform: translateY(-50%);&amp;#13;
+        transform: translateY(-50%);&amp;#13;
+      }&amp;#13;
+    }&amp;#13;
+    #hr_loading_indicator {&amp;#13;
+      margin-top: 5px;&amp;#13;
+    }&amp;#13;
+    .navbar-right .dropdown-menu &amp;gt; li &amp;gt; a {&amp;#13;
+      &amp;amp;:hover, &amp;amp;:focus {&amp;#13;
+        background-color: darken($navbar-inverse-bg, 8%);&amp;#13;
+        color: $navbar-inverse-link-hover-color;&amp;#13;
+      }&amp;#13;
+    }&amp;#13;
+  }&amp;#13;
+  .dropdown-toggle:focus {&amp;#13;
+  	outline: thin dotted;&amp;#13;
+    outline: 5px auto -webkit-focus-ring-color;&amp;#13;
+  }&amp;#13;
+  .sub-navbar {&amp;#13;
+    background-color: $sp-navbar-divider-color;&amp;#13;
+    border: none;&amp;#13;
+    width: 100%;&amp;#13;
+    a, .chat-btn {&amp;#13;
+      padding: 10px 15px;&amp;#13;
+    }&amp;#13;
+    .chat-btn {&amp;#13;
+      color: $navbar-inverse-link-color;&amp;#13;
+      background-color: $sp-navbar-divider-color;&amp;#13;
+    }&amp;#13;
+    .chat-btn:focus {&amp;#13;
+      box-shadow: inset 0 0 0 0.1rem #fff;
+      border-radius: .2rem;
+      background-color: transparent;&amp;#13;
+      color: $navbar-inverse-link-hover-color;&amp;#13;
+    }&amp;#13;
+    .chat-btn:hover {&amp;#13;
+      outline: 0 !important;&amp;#13;
+      background-color: transparent;&amp;#13;
+      color: $navbar-inverse-link-hover-color;&amp;#13;
+    }&amp;#13;
+    #cart-dropdown, #wishlist-menu {&amp;#13;
+      display: none;&amp;#13;
+      ~ * {&amp;#13;
+        display: none !important;&amp;#13;
+      }&amp;#13;
+    }&amp;#13;
+    .navbar-nav &amp;gt; li &amp;gt; a[href="?id=sc_cart"], .navbar-nav &amp;gt; li &amp;gt; a[href="?id=sc_wishlist"] {&amp;#13;
+      display: none !important;&amp;#13;
+    }&amp;#13;
+    .gtd-dropdown-container {&amp;#13;
+      display: none;&amp;#13;
+    }&amp;#13;
+    .open &amp;gt; a, .open &amp;gt; a:focus {&amp;#13;
+      background-color: darken($sp-navbar-divider-color, 8%);&amp;#13;
+    }&amp;#13;
+    #cart-dropdown {&amp;#13;
+      display: none;&amp;#13;
+      :after {&amp;#13;
+        content: "\f0d7";&amp;#13;
+        vertical-align: baseline;&amp;#13;
+        width: auto;&amp;#13;
+        height: auto;&amp;#13;
+        border: none;&amp;#13;
+        margin-left: 5px !important;&amp;#13;
+        display: inline-block;&amp;#13;
+        font: normal normal normal 14px/1 FontAwesome;&amp;#13;
+        font-size: inherit;&amp;#13;
+        text-rendering: auto;&amp;#13;
+        -webkit-font-smoothing: antialiased;&amp;#13;
+        -moz-osx-font-smoothing: grayscale;&amp;#13;
+      }&amp;#13;
+    }&amp;#13;
+    .dropdown-menu {&amp;#13;
+      background-color: $sp-navbar-divider-color;&amp;#13;
+      &amp;gt; li &amp;gt; a:hover, &amp;gt; li &amp;gt; a:focus {&amp;#13;
+        background-color: darken($sp-navbar-divider-color, 8%);&amp;#13;
+      }&amp;#13;
+    }&amp;#13;
+  }&amp;#13;
+  .dropdown-menu {&amp;#13;
+    border: none;&amp;#13;
+    &amp;amp;.case-menu {&amp;#13;
+      right: 0;&amp;#13;
+      left: auto;&amp;#13;
+      padding: 0;&amp;#13;
+      width: 450px;&amp;#13;
+      background: $color-lightest;&amp;#13;
+      overflow-y: hidden;&amp;#13;
+    }&amp;#13;
+  }&amp;#13;
+  &amp;gt; .open &amp;gt; a:hover, &amp;gt; .open &amp;gt; a:focus  {&amp;#13;
+    background-color: darken($navbar-invese-bg, 8%);&amp;#13;
+  }&amp;#13;
+  .fa-caret-down {&amp;#13;
+    vertical-align: middle;&amp;#13;
+    margin-top: 2px;&amp;#13;
+  }&amp;#13;
+  .caret:before {&amp;#13;
+    content: "\f0d7";&amp;#13;
+  }&amp;#13;
+  .caret {&amp;#13;
+    vertical-align: baseline;&amp;#13;
+    width: auto;&amp;#13;
+    height: auto;&amp;#13;
+    border: none;&amp;#13;
+    margin-left: 5px !important;&amp;#13;
+    display: inline-block;&amp;#13;
+    font: normal normal normal 14px/1 FontAwesome;&amp;#13;
+    font-size: inherit;&amp;#13;
+    text-rendering: auto;&amp;#13;
+    -webkit-font-smoothing: antialiased;&amp;#13;
+    -moz-osx-font-smoothing: grayscale;&amp;#13;
+  }&amp;#13;
+  .label-as-badge {&amp;#13;
+    font-size: 1.2rem;&amp;#13;
+    margin-left: 5px;&amp;#13;
+    background-color: $primary;&amp;#13;
+  }&amp;#13;
+  .navbar {&amp;#13;
+    transition: 250ms opacity ease-in-out; &amp;#13;
+    -webkit-transition: 250ms opacity ease-in-out; &amp;#13;
+    border: 0;&amp;#13;
+  }&amp;#13;
+  .navbar-fade {&amp;#13;
+    opacity: 0.4;&amp;#13;
+  }&amp;#13;
+  .navbar-collapse {&amp;#13;
+    padding-right: 0px;&amp;#13;
+  }&amp;#13;
+  .case-menu {&amp;#13;
+    div#widget-tabs-2 {&amp;#13;
+      border: none;&amp;#13;
+      &amp;gt; .panel-heading {&amp;#13;
+        border: none;&amp;#13;
+        bottom-border: 1px solid $border;&amp;#13;
+      }&amp;#13;
+    }&amp;#13;
+  }&amp;#13;
+  ul.nav.navbar-nav &amp;gt; div.header-loader {&amp;#13;
+    display: none;&amp;#13;
+  }&amp;#13;
+  &amp;#13;
+  .cart-dropdown, .wishlist-menu, .gtd-dropdown-container .empty-dropdown {&amp;#13;
+    width: 350px;&amp;#13;
+    padding: 0;&amp;#13;
+    z-index: 1000;&amp;#13;
+    border-top-left-radius: 4px !important;&amp;#13;
+    border-top-right-radius: 4px !important;&amp;#13;
+&amp;#13;
+    ul {&amp;#13;
+      max-height: 300px;&amp;#13;
+      overflow: auto;&amp;#13;
+    }&amp;#13;
+&amp;#13;
+    .subtotal {&amp;#13;
+      display: block;&amp;#13;
+    }&amp;#13;
+&amp;#13;
+    .item-image {&amp;#13;
+      padding: 0;&amp;#13;
+      margin: 0;&amp;#13;
+      text-align: center;&amp;#13;
+      max-width:100%;&amp;#13;
+      height:auto;&amp;#13;
+    }&amp;#13;
+    label, p {&amp;#13;
+      padding: 0;&amp;#13;
+      margin: 0;&amp;#13;
+    }&amp;#13;
+    .media {&amp;#13;
+      padding: 0;&amp;#13;
+      margin: 0;&amp;#13;
+    }&amp;#13;
+    .media-left &amp;gt; a {&amp;#13;
+      display: block;&amp;#13;
+      width: 48px;&amp;#13;
+      max-width: 48px;&amp;#13;
+    }&amp;#13;
+    .media-body {&amp;#13;
+      label {&amp;#13;
+        font-weight: bold;&amp;#13;
+      }&amp;#13;
+    }&amp;#13;
+    li.media {&amp;#13;
+      border-top: 1px solid #cccccc;&amp;#13;
+      padding: 1rem;&amp;#13;
+    }&amp;#13;
+    .panel {&amp;#13;
+      margin: 0;&amp;#13;
+    }&amp;#13;
+    .panel .panel-body {&amp;#13;
+      padding: 0;&amp;#13;
+    }&amp;#13;
+    .btn-clear {&amp;#13;
+      color: #333;&amp;#13;
+      background-color: #fff;&amp;#13;
+    }&amp;#13;
+    p.quantity-price {&amp;#13;
+      padding-top: 0.5rem;&amp;#13;
+      span {&amp;#13;
+        color: $text-muted;&amp;#13;
+        padding-right: 0.5rem;&amp;#13;
+      }&amp;#13;
+    }&amp;#13;
+    .align-right {&amp;#13;
+      text-align: right;&amp;#13;
+    }&amp;#13;
+  }&amp;#13;
+&amp;#13;
+&amp;#13;
+&amp;#13;
+  .item-added-tooltip, wishlist-item-added-tooltip {&amp;#13;
+    width: 184px;&amp;#13;
+    font-size: 14px;&amp;#13;
+  }&amp;#13;
+&amp;#13;
+  .gtd-dropdown-container {&amp;#13;
+    .empty-tour-content{&amp;#13;
+      text-align: center;&amp;#13;
+      margin:40px 20px;&amp;#13;
+    }&amp;#13;
+    .dropdown-menu li {&amp;#13;
+      a {&amp;#13;
+        cursor: pointer;&amp;#13;
+      }&amp;#13;
+      min-width: 20em;&amp;#13;
+    }&amp;#13;
+    .label-as-badge{&amp;#13;
+      width: 12px;&amp;#13;
+      height: 12px;&amp;#13;
+      display: inline-block;&amp;#13;
+      padding: 0px;&amp;#13;
+      padding-top: 2px;&amp;#13;
+    }&amp;#13;
+    .badge-container {&amp;#13;
+      display: inline-block;&amp;#13;
+      width: 12px;&amp;#13;
+    }&amp;#13;
+  }&amp;#13;
+&amp;#13;
+}&amp;#13;
+@media screen and (min-width: 768px) {&amp;#13;
+  .navbar-inverse {&amp;#13;
+    .navbar-right &amp;gt; .navbar-nav &amp;gt; div {&amp;#13;
+      float: left;&amp;#13;
+    }&amp;#13;
+    .navbar-right {&amp;#13;
+      &amp;gt; ul {&amp;#13;
+        display: -webkit-box;&amp;#13;
+        display: -moz-box;&amp;#13;
+        display: box;&amp;#13;
+&amp;#13;
+        -moz-box-orient: horizontal;&amp;#13;
+        box-orient: horizontal; &amp;#13;
+        -webkit-box-orient: horizontal;&amp;#13;
+      }&amp;#13;
+      .navbar-nav &amp;gt; li &amp;gt; a {&amp;#13;
+        padding-right: 10px;&amp;#13;
+        padding-left: 10px;&amp;#13;
+      }&amp;#13;
+    }&amp;#13;
+    .navbar-avatar {&amp;#13;
+      margin-top: -7px;&amp;#13;
+    }&amp;#13;
+    a#todos_popup {&amp;#13;
+      padding-left:0px;&amp;#13;
+    }&amp;#13;
+    .navbar-nav .open .dropdown-menu &amp;gt; li &amp;gt; a {&amp;#13;
+      padding: 10px 20px;&amp;#13;
+    }&amp;#13;
+    .navbar-header {&amp;#13;
+      position:relative;&amp;#13;
+      .dropdown-toggle {&amp;#13;
+        height: 60px;&amp;#13;
+      }&amp;#13;
+    }&amp;#13;
+    .temp-mobile {&amp;#13;
+      display: inline-block;&amp;#13;
+    }&amp;#13;
+    .sub-navbar {&amp;#13;
+      display: flex;&amp;#13;
+      padding-left: 0;&amp;#13;
+    }&amp;#13;
+    .header-search {&amp;#13;
+      margin: 13px 0;&amp;#13;
+      width: 26%;&amp;#13;
+    }&amp;#13;
+  }&amp;#13;
+}&amp;#13;
+@media (min-width : 320px) and (max-width : 767px) {&amp;#13;
+  .navbar-inverse {&amp;#13;
+    .dropdown-menu.case-menu {&amp;#13;
+      width: 100%;&amp;#13;
+    }&amp;#13;
+    .navbar-toggle {&amp;#13;
+      border-color: rgba(255, 255, 255, .25);&amp;#13;
+      &amp;amp;:hover, &amp;amp;:focus {&amp;#13;
+        background-color: transparent;&amp;#13;
+      }&amp;#13;
+    }&amp;#13;
+    .navbar-nav {&amp;#13;
+      display:block;&amp;#13;
+      margin-top:0px;&amp;#13;
+      margin-bottom:0px;&amp;#13;
+      .open .dropdown-menu &amp;gt; li &amp;gt; a {&amp;#13;
+        padding: 5px 30px;&amp;#13;
+      }&amp;#13;
+    }&amp;#13;
+    .sub-navbar {&amp;#13;
+      padding: 0px 0px;&amp;#13;
+    }&amp;#13;
+    .upper-collapse {&amp;#13;
+      width: 100%;&amp;#13;
+      padding-bottom: 0px;&amp;#13;
+    }&amp;#13;
+    .navbar-collapse {&amp;#13;
+      padding-top: 0px;&amp;#13;
+      padding-left: 0px;&amp;#13;
+      overflow: hidden;&amp;#13;
+      ul {&amp;#13;
+        margin: 0;&amp;#13;
+      }&amp;#13;
+    }&amp;#13;
+    .header-search {&amp;#13;
+      margin-top: 0 !important;&amp;#13;
+      padding-bottom: 10px;&amp;#13;
+      float: left;&amp;#13;
+      width: 100%;&amp;#13;
+    }&amp;#13;
+    .navbar-header {&amp;#13;
+      &amp;gt; ul {&amp;#13;
+        display: inline-block;&amp;#13;
+        padding: 10px 10px 0 0;&amp;#13;
+        float: right;&amp;#13;
+        margin: 0;&amp;#13;
+      }&amp;#13;
+      &amp;gt; li {&amp;#13;
+        display: inline-block; &amp;#13;
+      }&amp;#13;
+    }&amp;#13;
+    .height-adjust {&amp;#13;
+      padding: 10px 0px;&amp;#13;
+      margin-bottom: 10px;&amp;#13;
+    }&amp;#13;
+    .popup-edit {&amp;#13;
+      background: $color-lightest;&amp;#13;
+      position: fixed;&amp;#13;
+      top:0; &amp;#13;
+      height:100%;&amp;#13;
+      margin-top: 0;&amp;#13;
+      max-height:100%;&amp;#13;
+      width:100%&amp;#13;
+    }&amp;#13;
+    .navbar-collapse-label {&amp;#13;
+      float: right;&amp;#13;
+      margin-right: -5px;&amp;#13;
+      margin-top: -7px;&amp;#13;
+    }&amp;#13;
+    button &amp;gt; span.label {&amp;#13;
+      padding: .2em .5em .2em;&amp;#13;
+    }&amp;#13;
+  }&amp;#13;
+}&amp;#13;
+&amp;#13;
+@media screen and (min-width: 768px) {&amp;#13;
+  	.avatar-drop-down,.avatar-drop-down &amp;gt; div{&amp;#13;
+  		display: inline;&amp;#13;
+	}&amp;#13;
+}&amp;#13;
+&lt;/css&gt;&lt;data_table&gt;sp_instance&lt;/data_table&gt;&lt;demo_data/&gt;&lt;description/&gt;&lt;docs/&gt;&lt;field_list/&gt;&lt;has_preview&gt;false&lt;/has_preview&gt;&lt;id&gt;esc-header&lt;/id&gt;&lt;internal&gt;false&lt;/internal&gt;&lt;link&gt;&lt;![CDATA[function escHeaderLink(scope, element) {
+	$(element).on('click', 'a.navbar-brand', function(e) {
+		scope.expanded = false;
+	});
+	$(element).on('click.nav','.navbar-collapse.in',function(e) {
+		var target = $(e.target);
+		if (target.is('a') &amp;&amp; !target.hasClass("dropdown-toggle") &amp;&amp; target.siblings('.dropdown-menu').length == 0) {
+			// collapse mobile nav if clicked an anchor that isn't a dropdown toggle
+			scope.expanded = false;
+			return;
+		}
+		
+		// if neither target nor parent is an anchor or the parent anchor is a dropdown-toggle, do nothing
+		if (!target.parent().is('a') || target.parent().hasClass("dropdown-toggle") || target.parent().siblings('.dropdown-menu').length &gt; 0)
+			return;
+		
+		// collapse mobile nav if target is part of a submenu
+		if (target.parents("ul.dropdown-menu").length &gt; 0) {
+			scope.expanded = false;
+			return;
+		}
+		
+		// collapse mobile nav is target is part of the dropdown
+		if (target.parents("div.navbar-collapse").length &gt; 0)
+			scope.expanded = false;
+	});
+	$(element).on('keydown','.dropdown-menu &gt; .header-menu-item',function(e){
+		var target = e.target;
+		if (target.localName == 'a') {
+			if(e.keyCode == 37) {
+				e.preventDefault();
+				$(target).parents('li').removeClass('open');
+				$(target).parents('li').find('a').focus();
+			} else if(e.keyCode == 39) {
+				e.preventDefault();
+				$(target).parents('li').removeClass('open');
+				$(target).parents('li').find('a').focus();
+			}
+			if(e.keyCode == 9) {
+				$(target).parents('li').removeClass('open');
+			}
+		}
+	});
+	
+	$(element).on('keydown','.header-menu-item',function(e){
+		var target = e.target;
+		if (target.localName == 'a') {
+			var currentMenuItem = $(target).parents('li');
+			var parentUL = currentMenuItem.parents('ul');
+			var allMenuItems = parentUL.children('li:visible');
+			var firstMenuItem = allMenuItems.first();
+			var lastMenuItem = allMenuItems.last();
+			var menuItemToFocus;
+			
+			if(e.keyCode == 37) {
+				e.preventDefault();
+				currentMenuItem.removeClass('open');
+				var previousMenuItem = currentMenuItem.prevAll('li:visible').first();
+				//enable circular navigation
+				menuItemToFocus = previousMenuItem.length ? previousMenuItem : lastMenuItem;
+				menuItemToFocus.find('a').focus();
+			} else if(e.keyCode == 39) {
+				e.preventDefault();
+				currentMenuItem.removeClass('open');
+				var nextMenuItem = currentMenuItem.nextAll('li:visible').first();
+				//enable circular navigation
+				menuItemToFocus = nextMenuItem.length ? nextMenuItem : firstMenuItem;
+				menuItemToFocus.find('a').focus();
+			}
+			
+			if(e.keyCode == 9) {
+				$(target).parents('li').removeClass('open');
+			}
+		}
+	});
+	
+}]]&gt;&lt;/link&gt;&lt;name&gt;ESC Header&lt;/name&gt;&lt;option_schema/&gt;&lt;public&gt;false&lt;/public&gt;&lt;roles/&gt;&lt;script&gt;&lt;![CDATA[(function () {
+	data.ACTION_TODO_COUNT = 'update_todo_count';
+	data.ACTION_LOAD_CASES = 'load_cases';
+	data.isMobile = gs.isMobile();
+
+	data.isVAActive = new GlidePluginManager().isActive("com.glide.cs.chatbot");
+
+	data.chatSupportEnabled = new sn_hr_sp.hr_PortalUtil().isChatSupportEnabled();
+
+	//Load To-dos count
+	if (!input || input.action == data.ACTION_TODO_COUNT) {
+		var myTodosCountObject= new sn_hr_sp.todoPageUtils().getMyTodosCount();
+		data.todoCount = myTodosCountObject.todoCount;
+		data.todoCountLabel = gs.getMessage("{0} to-dos remaining");
+		data.recordWatchers = myTodosCountObject.recordWatchers;
+
+		// avoid consecutive calls 
+		if(input)
+			return ;
+	}
+
+	data.isHrCoreActive = GlidePluginManager().isActive("com.sn_hr_core");
+
+	if (data.isHrCoreActive &amp;&amp; gs.getProperty('sn_hr_core.esc.create_hrprofile.override', 'true') === "true") {
+
+		// HR Profile
+		var hrProfileGr = new GlideRecord('sn_hr_core_profile');
+		hrProfileGr.addQuery('user', gs.getUserID());
+		hrProfileGr.setLimit(1);
+		hrProfileGr.query();
+		if (!hrProfileGr.hasNext() &amp;&amp; gs.getUserID() &amp;&amp; new GlideRecord('sys_user').get(gs.getUserID())) {
+			hrProfileGr.setValue('user', gs.getUserID());
+			hrProfileGr.insert();
+		}
+	}
+
+	// populate the 'data' object
+	data.link = '?id=hri_user_profile&amp;sys_id='+ gs.getUserID();
+
+	// Defines the support queue ID that will be linked to by the Live Chat link in header
+	data.login_page = $sp.getValue('login_page');
+
+	var menu = $sp.getValue("sp_rectangle_menu");
+	//Initialize menu objects
+	data.sub = {};
+	data.top = {};
+	data.sub.menu = $sp.getWidgetFromInstance(menu);
+
+	//Copy sub menu to top menu, we want cart up top and menu items in the sub nav
+
+	data.top.menu = JSON.parse(JSON.stringify(data.sub.menu));
+	if (data.sub.menu &amp;&amp; data.sub.menu.data) {
+		data.sub.menu.data.replace = true;
+		// Hide login if menu already has link to login
+		data.hasLogin = false;
+		if (data.sub.menu.data.menu.items) {
+			for(var i in data.sub.menu.data.menu.items) {
+				var item = data.sub.menu.data.menu.items[i];
+				if (item.type == 'page' &amp;&amp; item.sp_page == data.login_page)
+					data.hasLogin = true;
+			}
+		}
+	}
+
+	var configOptions = JSON.parse(data.top.menu.options.widget_parameters);
+	data.hideSearchOnHomepage = configOptions.exclude_search_on_homepage.value;
+	data.showRequests = configOptions.enable_requests.value;
+	data.showTodos = configOptions.enable_tasks.value;
+
+	if (data.hideSearchOnHomepage) {
+		data.homepage = $sp.getValue('homepage');
+		var gr = new GlideRecord('sp_page');
+		gr.get(data.homepage);
+		data.dashboardSuffix = gr.getValue("id");
+		data.portalSuffix = $sp.getPortalRecord().getDisplayValue("url_suffix");
+	}
+
+	// Analytics
+	data.analyticsSupportEnabled = new GlidePluginManager().isActive('com.sn_content_analytics') &amp;&amp; new GlidePluginManager().isActive('com.sn_content_delivery') &amp;&amp; !sn_cd.cd_ContentDelivery.isContentPreview($sp);
+
+	//Clean up items that don't belong
+
+	data.sub.menu.data.cartWidget = {};
+	data.sub.menu.options.enable_cart = false;
+	data.sub.menu.data.showTours = false;
+	data.top.menu.data.menu.items = [];
+
+
+	data.loginWidget = $sp.getWidgetFromInstance('login-modal');
+	var typeAheadOptions = {};
+	typeAheadOptions.refresh_page_on_search_submission = false;
+	typeAheadOptions.title = gs.getMessage("Search the portal");
+	if($sp.isAISearchEnabled())
+		typeAheadOptions.disable_all_suggestions = ($sp.getParameter('disableAllSuggestions') == 'true');
+	data.typeahead = $sp.getWidget('typeahead-search', typeAheadOptions);
+	data.avatarDropDown = $sp.getWidget('profile-with-drop-down',{"profile_url": data.link, "show_xs_avatar": false});
+
+})();]]&gt;&lt;/script&gt;&lt;servicenow&gt;true&lt;/servicenow&gt;&lt;sys_class_name&gt;sp_header_footer&lt;/sys_class_name&gt;&lt;sys_created_by&gt;admin&lt;/sys_created_by&gt;&lt;sys_created_on&gt;2018-08-22 16:36:06&lt;/sys_created_on&gt;&lt;sys_id&gt;bda7abc623882300fb0c949e27bf6544&lt;/sys_id&gt;&lt;sys_mod_count&gt;791&lt;/sys_mod_count&gt;&lt;sys_name&gt;ESC Header&lt;/sys_name&gt;&lt;sys_package display_value="Employee Center Core" source="sn_hr_sp"&gt;3d1da2705b021200a4656ede91f91ab6&lt;/sys_package&gt;&lt;sys_policy/&gt;&lt;sys_scope display_value="Employee Center Core"&gt;3d1da2705b021200a4656ede91f91ab6&lt;/sys_scope&gt;&lt;sys_update_name&gt;sp_header_footer_bda7abc623882300fb0c949e27bf6544&lt;/sys_update_name&gt;&lt;sys_updated_by&gt;admin&lt;/sys_updated_by&gt;&lt;sys_updated_on&gt;2021-08-09 08:32:04&lt;/sys_updated_on&gt;&lt;template&gt;&lt;![CDATA[&lt;!-- Nav bar menu items starts--&gt;
+&lt;nav class="navbar-inverse" aria-label="Primary" role="navigation"&gt;
+
+  &lt;!-- Piece above searchbar --&gt;
+
+  &lt;div class="clearfix"&gt;
+    &lt;div class="navbar-header nav-container"&gt;
+
+      &lt;!-- Logo --&gt;
+      &lt;a class="navbar-brand" ng-if="::!portal.logo" href="?id={{::portal.homepage_dv}}" aria-label="{{::portal.title}}"&gt;&lt;span&gt;{{::portal.title}}&lt;/span&gt;&lt;/a&gt;
+      &lt;a class="navbar-brand navbar-brand-logo" ng-if="::portal.logo" href="?id={{::portal.homepage_dv}}" aria-label="{{::portal.title}}${ - Home Page}" data-toggle="tooltip" data-placement="bottom" data-title="{{::portal.title}}${ - Home}"&gt;
+        &lt;img ng-src="{{::portal.logo}}" alt="{{::portal.title}}${ - Home}"/&gt;
+      &lt;/a&gt;
+
+      &lt;!-- Toggle Button --&gt;
+      &lt;button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse" ng-class="(expanded) ? 'in' : 'collapsed'" ng-click="expanded = !expanded" aria-expanded="{{expanded ? true: false}}" ng-style="{'background-color' : (expanded) ? '#333' : 'transparent'}" aria-label="{{expanded ? '${Hide menu primary navigation}' : '${Show menu primary navigation}'}}" data-toggle="tooltip" data-placement="auto bottom" data-original-title="{{expanded ? '${Hide Menu}' : '${Show Menu}'}}"&gt;
+        &lt;span ng-show="(data.todoCount + data.requestCount + cartItemCount) &gt; 0" class="label label-as-badge label-primary navbar-collapse-label"&gt;{{data.todoCount + data.requestCount + cartItemCount}}&lt;/span&gt;
+        &lt;span class="sr-only"&gt;${Toggle navigation}&lt;/span&gt;
+        &lt;span class="icon-bar"&gt;&lt;/span&gt;
+        &lt;span class="icon-bar"&gt;&lt;/span&gt;
+        &lt;span class="icon-bar"&gt;&lt;/span&gt;
+      &lt;/button&gt;
+
+      &lt;!-- Search Bar Desktop --&gt;
+      &lt;div class="header-search navbar-header col-sm-3" ng-if="showSearchBar"&gt;
+        &lt;sp-widget widget="data.typeahead"&gt;&lt;/sp-widget&gt;
+      &lt;/div&gt;
+
+      &lt;!-- Header Navbar --&gt;
+      &lt;div class="navbar-collapse upper-collapse navbar-right collapse collapsed" ng-class="(expanded) ? 'in' : 'collapsed'" aria-expanded="false"&gt;
+        &lt;div class="height-adjust"&gt;
+          &lt;ul class="nav navbar-nav" role="menubar" aria-orientation="horizontal"&gt;
+            &lt;li class="hidden-xs" ng-show="loadingIndicator"&gt;  
+              &lt;a&gt; 
+                &lt;div class="header-loader" id="hr_loading_indicator"&gt; 
+                  &lt;div class="hidden-xs sp-loading-indicator la-sm"&gt; 
+                    &lt;div&gt;&lt;/div&gt; 
+                    &lt;div&gt;&lt;/div&gt; 
+                    &lt;div&gt;&lt;/div&gt; 
+                  &lt;/div&gt; 
+                &lt;/div&gt; 
+              &lt;/a&gt; 
+            &lt;/li&gt; 
+            &lt;li class="visible-xs-block m-t-sm m-b-sm"&gt;
+              &lt;a href="{{data.link}}" ng-class="getClass(data.link)" aria-label="{{user.name}} ${profile}" role="menuitem"&gt;
+                &lt;span class="navbar-avatar"&gt;&lt;sn-avatar class="avatar-small-medium" show-presence="false" primary="user.sys_id" /&gt;&lt;/span&gt;
+                &lt;span class="visible-xs-inline"&gt;{{user.name}}&lt;/span&gt;
+              &lt;/a&gt;
+            &lt;/li&gt;        
+            &lt;li class="hidden-xs header-menu-item" role="presentation" ng-if="data.showTodos"&gt;
+              &lt;a href="?id=hrm_todos_page" ng-class="getClass('?id=hrm_todos_page')" id="todos_link"  aria-label="${To-dos}, {{c.todoCountTranslation}}" role="menuitem"&gt;
+                &lt;span ng-bind-html="'${To-dos}'"&gt;&lt;/span&gt;
+                &lt;span ng-show="data.todoCount" class="label label-as-badge label-primary"&gt;{{data.todoCount}}&lt;/span&gt;
+              &lt;/a&gt;
+            &lt;/li&gt;
+            &lt;li class="hidden-xs header-menu-item" role="presentation" ng-if="data.showRequests"&gt;
+              &lt;a href="?id=my_requests" id="cases_popup" aria-label="${Requests}" role="menuitem"&gt; &lt;!-- TODO: Link for requests --&gt;
+                &lt;span ng-bind-html="'${Requests}'" aria-hidden="true"&gt;&lt;/span&gt;
+                &lt;span ng-show="data.requestCount" class="label label-as-badge label-primary"&gt;{{data.requestCount}}&lt;/span&gt;
+              &lt;/a&gt;
+            &lt;/li&gt;
+            &lt;li&gt;
+            	&lt;sp-widget widget="data.top.menu" id="menu_item"&gt;&lt;/sp-widget&gt;
+            &lt;/li&gt;
+            
+            &lt;li class="visible-xs" ng-if="data.isHrCoreActive" ng-if="data.showTodos"&gt;
+              &lt;a href="?id=hrm_todos_page" id="todos_mobile" aria-label="${To-dos}, {{data.todoCountTranslation}}" role="menuitem"&gt;
+                &lt;span ng-bind-html="'${To-dos}'" aria-hidden="true"&gt;&lt;/span&gt;
+                &lt;span ng-show="data.todoCount" class="label label-as-badge label-primary"&gt;{{data.todoCount}}&lt;/span&gt;
+              &lt;/a&gt;
+            &lt;/li&gt;
+            &lt;li class="visible-xs" ng-if="data.showRequests"&gt;
+              &lt;a href="?id=my_requests" id="requests_mobile" aria-label="${Requests}" role="menuitem"&gt;
+                &lt;span ng-bind-html="'${Requests}'" aria-hidden="true"&gt;&lt;/span&gt;
+                &lt;span ng-show="data.requestCount" class="label label-as-badge label-primary"&gt;{{data.requestCount}}&lt;/span&gt;
+              &lt;/a&gt;
+            &lt;/li&gt;
+          &lt;/ul&gt;
+          &lt;!-- Avatar and its drop down --&gt;
+          &lt;div class="avatar-drop-down header-menu-item"&gt;
+            &lt;sp-widget widget="data.avatarDropDown" id="avatar_drop_down" &gt;&lt;/sp-widget&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  
+  &lt;!-- Sub Navbar --&gt;
+
+  &lt;div class="navbar-collapse sub-navbar clearfix collapse collapsed" ng-class="(expanded) ? 'in' : 'collapsed'" aria-expanded="false"&gt;
+    &lt;div class="height-adjust"&gt;
+      &lt;sp-widget widget="data.sub.menu"&gt;&lt;/sp-widget&gt;
+      &lt;ul ng-if="::(!user.logged_in &amp;&amp; page.id != portal.login_page_dv &amp;&amp; !data.hasLogin)" class="nav navbar-nav"&gt;
+        &lt;li&gt;&lt;a href ng-click="openLogin()"&gt;${Login}&lt;/a&gt;
+        &lt;/li&gt;
+      &lt;/ul&gt;
+      &lt;div class="hidden-xs" ng-if="data.chatSupportEnabled == true || isVAActive"&gt;
+          &lt;button class="btn chat-btn" ng-click="toggleChat()" id="va_chat" aria-label="{{showChat ? '${Hide Chat Window}' : '${Show Chat Window}'}}" aria-pressed="{{showChat ? true : false}}" ng-class="mobileDevice?'active-chat':'inactive-chat'"&gt;
+            &lt;span ng-bind-html="'${Chat}'" aria-hidden="true"&gt;&lt;/span&gt;
+            &lt;span ng-if="mobileDevice &amp;&amp; showChat" class="chat-active" ng-bind-html="'${Active}'" aria-hidden="true"&gt;&lt;/span&gt;
+          &lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;!-- Analytics --&gt;
+  &lt;div ng-if="data.analyticsSupportEnabled"&gt;
+    &lt;widget id="cda-site-analytics" options="{'enable_logging': false}"&gt;&lt;/widget&gt;
+  &lt;/div&gt;
+&lt;/nav&gt;]]&gt;&lt;/template&gt;&lt;/sp_widget&gt;</payload>
+        <sys_class_name>sp_rel_widget_clone</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2022-08-19 03:08:22</sys_created_on>
+        <sys_id>19cc89db2f5111107fcffe7cf699b670</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>95cc89db2f5111107fcffe7cf699b66d</sys_name>
+        <sys_package display_value="Hello SP" source="x_738708_hello_sp">6a08f4972f1111107fcffe7cf699b63f</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="Hello SP">6a08f4972f1111107fcffe7cf699b63f</sys_scope>
+        <sys_update_name>sp_rel_widget_clone_19cc89db2f5111107fcffe7cf699b670</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2022-08-19 03:08:22</sys_updated_on>
+    </sp_rel_widget_clone>
+</record_update>

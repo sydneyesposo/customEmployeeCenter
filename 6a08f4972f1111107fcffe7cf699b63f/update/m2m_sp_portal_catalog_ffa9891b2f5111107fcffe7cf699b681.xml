@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="m2m_sp_portal_catalog">
+    <m2m_sp_portal_catalog action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <order>100</order>
+        <sc_catalog display_value="Resources">8752afd953133300a8ed21fac2dc34ac</sc_catalog>
+        <sp_portal display_value="Hello SP">64c874d72f1111107fcffe7cf699b68e</sp_portal>
+        <sys_class_name>m2m_sp_portal_catalog</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2022-08-19 02:54:53</sys_created_on>
+        <sys_id>ffa9891b2f5111107fcffe7cf699b681</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>Resources.Hello SP</sys_name>
+        <sys_package display_value="Hello SP" source="x_738708_hello_sp">6a08f4972f1111107fcffe7cf699b63f</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="Hello SP">6a08f4972f1111107fcffe7cf699b63f</sys_scope>
+        <sys_update_name>m2m_sp_portal_catalog_ffa9891b2f5111107fcffe7cf699b681</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2022-08-19 02:54:53</sys_updated_on>
+    </m2m_sp_portal_catalog>
+</record_update>

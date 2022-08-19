@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="taxonomy">
+    <taxonomy action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <description>Unified taxonomy that contains employee-centric topics for help content</description>
+        <managers display_value="All content taxonomy managers">aff6b7abc3453010069aec4b7d40dd4e</managers>
+        <name>Hello SP</name>
+        <sys_class_name>taxonomy</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2022-08-19 02:21:52</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>94228d9f2f1111107fcffe7cf699b64c</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>Hello SP</sys_name>
+        <sys_package display_value="Hello SP" source="x_738708_hello_sp">6a08f4972f1111107fcffe7cf699b63f</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="Hello SP">6a08f4972f1111107fcffe7cf699b63f</sys_scope>
+        <sys_update_name>taxonomy_94228d9f2f1111107fcffe7cf699b64c</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2022-08-19 02:21:52</sys_updated_on>
+    </taxonomy>
+    <sys_translated_text action="delete_multiple" query="documentkey=94228d9f2f1111107fcffe7cf699b64c"/>
+</record_update>
